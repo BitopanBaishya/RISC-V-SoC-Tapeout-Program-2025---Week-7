@@ -1,6 +1,6 @@
 # Week 7: BabySoC Physical Design & Post-Route SPEF Generation 
  
-The focus of this week is 
+This week takes the BabySoC from pure RTL into the physical world, guiding it through the essential stages of digital implementation using the OpenROAD flow. We set up the design environment, prepare technology-specific files, and move through synthesis, floorplanning, placement, CTS, routing and SPEF. Each step uncovers how real-world constraints — timing, congestion, macro placement, and clock balance — shape the final silicon form. It’s a concise but critical leap from logical design to a layout that’s ready for deeper optimization and post-route analysis.
 
 ---
 
@@ -18,7 +18,7 @@ The focus of this week is
 
 ## 📋 Prerequisites
 - Basic understanding of Linux commands.
-- Successful installation of the OpenROAD in [Week 5.](https://github.com/BitopanBaishya/VSD-Tapeout-Program-2025---Week-0.git)
+- Successful installation of the OpenROAD in [Week 5.](https://github.com/BitopanBaishya/RISC-V-SoC-Tapeout-Program-2025---Week-5)
 
 ---
 
