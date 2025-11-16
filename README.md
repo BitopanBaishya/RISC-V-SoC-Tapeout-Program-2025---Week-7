@@ -12,6 +12,7 @@ The focus of this week is
 [4. Floorplan](#4-floorplan)<br>
 [5. Placement](#5-placement)<br>
 [6. Clock Tree Synthesis (CTS)](#6-clock-tree-synthesis-cts)<br>
+[7. Routing](#7-routing)<br>
 
 ---
 
@@ -861,8 +862,28 @@ Total                  7.06e-03   5.05e-03   2.10e-08   1.21e-02 100.0%
                           58.3%      41.7%       0.0%
 ```
 
+---
 
+## 7. Routing
+### <ins>1. Commands</ins>
+Now, execute routing:
+```
+make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk route
+```
 
+### <ins>2. Execution of CTS in the Terminal</ins>
+<div align="center">
+<img src="Images/32.png" alt="Alt Text" width="1000"/>
+</div>
+
+First routing trial (24 Overflows):
+<div align="center">
+<img src="Images/33.png" alt="Alt Text" width="1000"/>
+</div>
+<br>
+
+> [!CAUTION]
+> The Routing stage is currently abruptly ending due to congestion. I am currently working on reducing the congestion hotspots. Further improvements will be updated here in orderly manner.
 
 
 
