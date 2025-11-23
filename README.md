@@ -887,7 +887,7 @@ make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk route
 <img src="Images/34.png" alt="Alt Text" width="1000"/>
 </div>
 
-### <ins>3. Visualize Floorplan</ins>
+### <ins>3. Visualize Routing</ins>
 ```
 make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk gui_route
 ```
