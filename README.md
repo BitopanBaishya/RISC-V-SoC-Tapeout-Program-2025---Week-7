@@ -13,6 +13,7 @@ This week takes the BabySoC from pure RTL into the physical world, guiding it th
 [5. Placement](#5-placement)<br>
 [6. Clock Tree Synthesis (CTS)](#6-clock-tree-synthesis-cts)<br>
 [7. Routing](#7-routing)<br>
+[8. Post-Route SPEF Generation](#8-post-route-spef-generation)<br>
 
 ---
 
@@ -865,16 +866,176 @@ Total                  7.06e-03   5.05e-03   2.10e-08   1.21e-02 100.0%
 ---
 
 ## 7. Routing
+> [!CAUTION]
+> The routing stage initially encountered several congestion-related challenges. In this section, I present only the final routing results obtained after resolving those issues. However, it is likely that similar congestion problems may arise during your own routing attempts. For reference, I have documented the complete debugging process I went through [here](#%EF%B8%8F-challenges), which you may review for guidance.
+
+
 ### <ins>1. Commands</ins>
 Now, execute routing:
 ```
 make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk route
 ```
 
-### <ins>2. Execution of CTS in the Terminal</ins>
+### <ins>2. Execution of Routing in the Terminal</ins>
 <div align="center">
 <img src="Images/32.png" alt="Alt Text" width="1000"/>
 </div>
+<div align="center">
+<img src="Images/34.png" alt="Alt Text" width="1000"/>
+</div>
+
+### <ins>3. Visualize Floorplan</ins>
+```
+make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk gui_route
+```
+<div align="center">
+<img src="Images/35.png" alt="Alt Text" width="1000"/>
+</div>
+
+The final routed layout:
+<div align="center">
+<img src="Images/36.png" alt="Alt Text" width="1000"/>
+</div>
+<div align="center">
+<img src="Images/37.png" alt="Alt Text" width="1000"/>
+</div>
+<div align="center">
+<img src="Images/38.png" alt="Alt Text" width="1000"/>
+</div>
+
+---
+
+## 8. Post-Route SPEF Generation
+This section outlines the step-by-step procedure for generating the post-route Standard Parasitic Exchange Format (SPEF) file and the post-placement Verilog netlist for the VSDBabySoC design using OpenROAD. These outputs are critical for accurate post-routing timing analysis and signoff. The SPEF file captures the parasitic resistance and capacitance extracted from the physical layout, while the updated Verilog netlist represents the finalized connectivity after placement and routing.
+
+### <ins>1. Ensure Availability of RC Extraction Rule Files</ins>
+Before initiating SPEF generation, it is necessary to have access to the following RCX rule files:
+- `rules.openrcx.sky130A.nom.calibre`
+- `rules.openrcx.sky130A.min.calibre`
+- `rules.openrcx.sky130A.max.calibre`
+
+These files are required by OpenRCX to perform accurate parasitic extraction for the Sky130A process. Since they were not present in my environment, the first step was to install open_pdks, which provides the necessary technology files, extraction rules, and associated PDK resources required for post-route SPEF generation.
+
+1. **Create the PDK directory**<br>
+   This ensures you have a clean place to install it.
+   ```
+   mkdir -p /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks
+   ```
+
+2. **Export the PDK_ROOT environment variable**<br>
+   ```
+   export PDK_ROOT=/home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks
+   ```
+   To make this permanent, add it to your `.bashrc`:
+   ```
+   echo "export PDK_ROOT=/home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks" >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+3. **Install open_pdks (Sky130)**<br>
+   ```
+   cd /home/bitopan/VSD_Tapeout_Program
+
+   git clone https://github.com/RTimothyEdwards/open_pdks.git
+
+   cd open_pdks
+
+   ./configure --enable-sky130-pdk --prefix=$PDK_ROOT
+
+   make -j$(nproc)
+
+   make install
+   ```
+
+4. **Verify the extraction rules exist**<br>
+   After installation, run:
+   ```
+   find /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks -type f -name "*.calibre"
+   ```
+   <div align="center">
+      <img src="Images/39.png" alt="Alt Text" width="1000"/>
+   </div>
+
+### <ins>2. Generating the Post-Route `.def` File</ins>
+Before initiating SPEF extraction, the post-route `.def` file is required as a key input. However, after completing the OpenROAD flow for VSDBabySoC, the only routing output available was the `5_2_route.odb` database. Since the `.def` file was not automatically generated, it had to be manually extracted from the `.odb` file using OpenROAD.
+```
+openroad
+
+read_db /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/results/sky130hd/vsdbabysoc/base/5_2_route.odb
+
+write_def /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/results/sky130hd/vsdbabysoc/base/5_2_route.def
+```
+
+<div align="center">
+   <img src="Images/40.png" alt="Alt Text" width="1000"/>
+</div>
+
+### <ins>3. SPEF file generation</ins>
+Follow these commands for SPEF generation:
+```
+# Navigate to the root directory of the OpenROAD flow environment.
+cd ~/OpenROAD-flow-scripts
+
+# Load all required environment variables and tool paths for OpenROAD and its dependencies.
+source env.sh
+
+# Enter the flow directory where design files and run outputs are organized.
+cd flow/
+
+# Launch the OpenROAD interactive shell for manual commands and extraction flows.
+openroad
+
+# Load the technology LEF containing metal layers, design rules, and process constraints.
+read_lef /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/platforms/sky130hd/lef/sky130_fd_sc_hd.tlef
+
+# Load the merged standard-cell LEF with physical abstracts of all library cells.
+read_lef /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/platforms/sky130hd/lef/sky130_fd_sc_hd_merged.lef
+
+# Load the LEF abstract for the PLL macro used in the design.
+read_lef /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/designs/sky130hd/vsdbabysoc/lef/avsdpll.lef
+
+# Load the LEF abstract for the DAC macro included in the VSDBabySoC.
+read_lef /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/designs/sky130hd/vsdbabysoc/lef/avsddac.lef
+
+# Import the timing library for the typical-corner standard cells.
+read_liberty /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/platforms/sky130hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+# Load the post-route DEF file containing final placement, routing, and geometries.
+read_def /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/results/sky130hd/vsdbabysoc/base/5_2_route.def
+
+# Define the RC extraction corner using the OpenRCX model for the Sky130 process.
+define_process_corner -ext_model_index 0 /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks/share/pdk/sky130A/libs.tech/openlane/rules.openrcx.sky130A.nom.calibre
+
+# Perform parasitic RC extraction on the routed layout using the specified model.
+extract_parasitics -ext_model_file /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/external_resources/pdks/share/pdk/sky130A/libs.tech/openlane/rules.openrcx.sky130A.nom.calibre
+
+# Write out the extracted parasitics in SPEF format for timing analysis.
+write_spef /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/designs/sky130hd/vsdbabysoc/vsdbabysoc.spef
+
+# Export the updated post-route Verilog netlist reflecting final connectivity.
+write_verilog /home/bitopan/VSD_Tapeout_Program/OpenROAD-flow-scripts/flow/designs/sky130hd/vsdbabysoc/vsdbabysoc_post_place.v
+```
+
+<div align="center">
+   <img src="Images/41.png" alt="Alt Text" width="1000"/>
+</div>
+<div align="center">
+   <img src="Images/42.png" alt="Alt Text" width="1000"/>
+</div>
+
+The generated `vasbabysoc.spef` file:
+<div align="center">
+   <img src="Images/43.png" alt="Alt Text" width="1000"/>
+</div>
+
+The generated `vsdbabysoc_post_place.v` file:
+<div align="center">
+   <img src="Images/44.png" alt="Alt Text" width="1000"/>
+</div>
+
+---
+
+## ⚠️ Challenges
 
 First routing trial (24 Overflows):
 <div align="center">
@@ -882,8 +1043,9 @@ First routing trial (24 Overflows):
 </div>
 <br>
 
-> [!CAUTION]
-> The Routing stage is currently abruptly ending due to congestion. I am currently working on reducing the congestion hotspots. Further improvements will be updated here in orderly manner.
+---
+
+## 🏁 Final Remarks
 
 
 
