@@ -274,7 +274,7 @@ make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk place
 <img src="Images/18.png" alt="Alt Text" width="1000"/>
 </div>
 
-### <ins>3. Visualize Floorplan</ins>
+### <ins>3. Visualize Placement</ins>
 ```
 make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk gui_place
 ```
