@@ -51,7 +51,9 @@ OpenROAD is organized into several key directories, each serving a specific role
      <img src="Images/1.png" alt="Alt Text" width="1000"/>
    </div>
 
-### <ins>2. Environment Setup and File Organization</ins>
+---
+
+## 2. Environment Setup and File Organization
 1. Create the two required `vsdbabysoc` design directories:<br>
    ```
    cd /OpenROAD-flow-scripts/flow/
