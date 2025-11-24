@@ -172,45 +172,6 @@ OpenROAD is organized into several key directories, each serving a specific role
                     └── vsdbabysoc_synthesis.sdc
    ```
 
-> [!CAUTION]
-> The following files are needed to be modified to avoid parsing errors:
-> 1. File name: `avsddac.lib`<br>
->    Before:
->    <div align="center">
->    <img src="Images/2.png" alt="Alt Text" width="1000"/>
->    </div>
->    
->    Replace with:
->    ```
->    pg_pin (VSSA) {
->      voltage_name : VSSA;
->      pg_type : primary_ground;
->    }
->    
->    pg_pin (VDDA) {
->      voltage_name : VDDA;
->      pg_type : primary_power;
->    }
->    ```
-> 2. File name: `avsdpll.lib`<br>
->    Before:
->    <div align="center">
->    <img src="Images/3.png" alt="Alt Text" width="1000"/>
->    </div>
->    
->    Replace with:
->    ```
->    pg_pin (GND) {
->      voltage_name : GND;
->      pg_type : primary_ground;
->    }
->    
->    pg_pin (VDD) {
->      voltage_name : VDD;
->      pg_type : primary_power;
->    }
->    ```
-
 ---
 
 ## 3. Synthesis
